@@ -1,18 +1,22 @@
-from typing import List, Tuple, Optional, Union, Any, Callable
-from random import Random
+from typing import List, Dict, Tuple, Optional, Any, Callable
 from datetime import datetime
-from math import log, sqrt
-from functools import partial
 from collections import defaultdict
 import sys
 
-import plotly.graph_objects as go
-from plotly.colors import qualitative
+# common imports
+from random import Random  # pylint: disable=unused-import
+from math import log, sqrt  # pylint: disable=unused-import,no-name-in-module
+from functools import partial  # pylint: disable=unused-import
 
-from IPython.display import display, HTML, Markdown, Image
+import plotly.graph_objects as go  # type: ignore
+from plotly.colors import qualitative  # type: ignore
+
+from IPython.display import display, Image  # type: ignore
 
 
 def show_figure(fig, image_path: Optional[str] = None):
+    """Show a Plotly figure."""
+
     if image_path is None:
         fig.show()
     else:
@@ -21,29 +25,36 @@ def show_figure(fig, image_path: Optional[str] = None):
 
 
 class RunningTimeExperiment:
+    """Manages running time experiments."""
+
     def __init__(self):
         self.instances: List[Tuple[int, Any]] = []
         self.algorithms: List[Tuple[str, Callable[[Any], Any]]] = []
         self.result: Dict[str, Dict[int, List[float]]] = defaultdict(lambda: defaultdict(list))
 
-    def add_instance(self, input_size: float, instance: Any):
+    def add_instance(self, input_size: int, instance: Any):
+        """Adds one problem instance."""
         self.instances += [(input_size, instance)]
 
     def add_algorithm(self, name: str, func: Callable[[Any], Any]):
+        """Adds one algorithm implementation."""
         self.algorithms += [(name, func)]
 
-    def validate(self) -> bool:
-        """Make sure that all algorithms output the same solution."""
+    def validate(self) -> None:
+        """Makes sure that all algorithms output the same solution."""
         assert self.instances and self.algorithms
 
         sys.stdout.write('Validating algorithms...')
         inst = self.instances[0][1]  # use the first instance
         expected = self.algorithms[0][1](inst)
-        assert all(f(inst) == expected for _, f in self.algorithms[1:]), 'Algorithm is not correct'
-        
+        assert all(f(inst) == expected for _,
+                   f in self.algorithms[1:]), 'Algorithm is not correct'
+
         print('ok')
-    
+
     def run(self, num_iterations=3):
+        """Runs experiments."""
+
         self.result.clear()
 
         for alg, f in self.algorithms:
@@ -51,25 +62,29 @@ class RunningTimeExperiment:
 
             for n, inst in self.instances:
                 sys.stdout.write(f'|n={n}:')
-                for iteration in range(3):
+                for _ in range(num_iterations):
                     start = datetime.now()
                     f(inst)
                     elapsed = datetime.now() - start
                     self.result[alg][n] += [elapsed.total_seconds()]
                     sys.stdout.write('.')
             print('|')
-    
-    def create_figure(self,
+
+    def create_figure(
+        self,
         title: str,
         width=800,
         height=800,
         xscale='log',
         yscale='log',
     ) -> None:
+        """Creates a Plotly figure based on the experiment results."""
+
         fig = go.Figure()
 
         for i, (alg, _) in enumerate(self.algorithms):
-            colors = qualitative.Plotly[i], qualitative.Plotly[(i + 5) % len(qualitative.Plotly)]
+            colors = qualitative.Plotly[i], qualitative.Plotly[(
+                i + 5) % len(qualitative.Plotly)]
 
             xs, ys, axs, ays = [], [], [], []
 
