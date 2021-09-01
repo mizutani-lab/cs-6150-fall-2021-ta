@@ -1,6 +1,7 @@
 from typing import List, Dict, Tuple, Optional, Any, Callable
 from datetime import datetime
 from collections import defaultdict
+from statistics import median
 import sys
 
 # common imports
@@ -93,7 +94,8 @@ class RunningTimeExperiment:
                 xs += [n] * len(runtime)
                 ys += runtime
                 axs += [n]
-                ays += [sum(runtime) / len(runtime)]  # take average
+#                 ays += [sum(runtime) / len(runtime)]  # take average
+                ays += [median(runtime)]  # take median
 
             # add violin trace
             fig.add_trace(go.Violin(
@@ -107,6 +109,17 @@ class RunningTimeExperiment:
                 fillcolor=colors[1],
                 opacity=0.7,
             ))
+
+            # add box trace
+#             fig.add_trace(go.Box(
+#                 x=xs,
+#                 y=ys,
+#                 name=alg,
+#                 showlegend=False,
+#                 line=dict(color=colors[0], width=1),
+#                 fillcolor=colors[1],
+#                 opacity=0.7,
+#             ))
 
             # add line trace
             fig.add_trace(go.Scatter(
