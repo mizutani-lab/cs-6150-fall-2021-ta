@@ -134,3 +134,4 @@ dmypy.json
 # Jupyter Notebook images
 notebooks/img
 
+.DS_Store
